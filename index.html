@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin">
+    <title>RCTV | Lista de Canais</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #060606;
+            color: #FFFFFF;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        nav {
+            background-color: #0D0D0D;
+            border-bottom: 2px solid #1A1A1A;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: #FFFFFF;
+        }
+        .nav-logo span { color: #FF0000; }
+        .nav-back {
+            color: #A0A0A0;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-back:hover { color: #FF0000; }
+
+        .content-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+        .hero-canais {
+            text-align: center;
+            padding: 35px 0 25px 0;
+        }
+        .hero-canais h2 { font-size: 34px; margin-bottom: 8px; }
+        .hero-canais h2 span { color: #FF0000; }
+        .hero-canais p { color: #B0B0B0; font-size: 15px; max-width: 650px; margin: 0 auto; }
+
+        .search-bar {
+            max-width: 450px;
+            margin: 25px auto 20px auto;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            background-color: #0D0D0D;
+            border: 1px solid #1A1A1A;
+            border-radius: 30px;
+            padding: 12px 20px;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #FF0000;
+        }
+        .search-bar input::placeholder { color: #666666; }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .filter-btn {
+            background-color: #0D0D0D;
+            border: 1px solid #1A1A1A;
+            color: #A0A0A0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .filter-btn:hover { color: #FFFFFF; border-color: #FF0000; }
+        .filter-btn.active { background-color: #FF0000; color: #FFFFFF; border-color: #FF0000; }
+
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 18px;
+            margin-bottom: 50px;
+        }
+        .channel-card {
+            background-color: #0D0D0D;
+            border: 1px solid #1A1A1A;
+            border-radius: 14px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: transform 0.25s, border-color 0.25s;
+        }
+        .channel-card:hover {
+            transform: translateY(-4px);
+            border-color: #FF0000;
+        }
+        .channel-logo {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px auto;
+            border-radius: 14px;
+            background: #1A1A1A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            overflow: hidden;
+            padding: 6px;
+        }
+        .channel-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .player-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .player-modal.active {
+            display: flex;
+        }
+        .player-box {
+            width: 100%;
+            max-width: 900px;
+            background: #0D0D0D;
+            border: 1px solid #1A1A1A;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid #1A1A1A;
+        }
+        .player-header h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .player-close {
+            background: #1A1A1A;
+            border: none;
+            color: #FFFFFF;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .player-close:hover { background: #FF0000; }
+        .player-frame-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #000000;
+        }
+        .player-frame-wrap iframe,
+        .player-frame-wrap video {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .player-loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            color: #777777;
+            font-size: 13px;
+        }
+        .channel-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .channel-tag {
+            display: inline-block;
+            font-size: 10px;
+            color: #777777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+        }
+        .btn-watch {
+            display: inline-block;
+            width: 100%;
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 0;
+            border-radius: 8px;
+            transition: background-color 0.25s;
+        }
+        .btn-watch:hover { background-color: #FF0000; }
+
+        .no-results {
+            display: none;
+            text-align: center;
+            color: #666666;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+
+        .info-note {
+            background-color: #0D0D0D;
+            border-left: 3px solid #FF0000;
+            border-radius: 0 10px 10px 0;
+            padding: 15px 20px;
+            color: #999999;
+            font-size: 13px;
+            margin-bottom: 40px;
+        }
+
+        footer {
+            background-color: #0D0D0D;
+            border-top: 2px solid #1A1A1A;
+            text-align: center;
+            padding: 20px;
+            color: #555555;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo">RC <span>TV</span></a>
+        <a href="index.html" class="nav-back">⬅ Voltar ao site principal</a>
+    </nav>
+
+    <div class="content-container">
+        <div class="hero-canais">
+            <h2>Lista de <span>Canais</span></h2>
+            <p>Todos os canais disponíveis na RCTV, organizados por categoria. Toque em "Assistir" para abrir o canal.</p>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="🔍 Buscar canal..." oninput="applyFilter()">
+        </div>
+
+        <div class="filter-bar" id="filter-bar">
+            <button class="filter-btn active" data-filter="todos"          onclick="filterCategory(this)">Todos</button>
+            <button class="filter-btn"        data-filter="abertos"        onclick="filterCategory(this)">Abertos</button>
+            <button class="filter-btn"        data-filter="documentarios"  onclick="filterCategory(this)">Documentários</button>
+            <button class="filter-btn"        data-filter="entretenimento" onclick="filterCategory(this)">Entretenimento</button>
+            <button class="filter-btn"        data-filter="esportes"       onclick="filterCategory(this)">Esportes</button>
+            <button class="filter-btn"        data-filter="filmes-series"  onclick="filterCategory(this)">Filmes &amp; Séries</button>
+            <button class="filter-btn"        data-filter="infantil"       onclick="filterCategory(this)">Infantil</button>
+            <button class="filter-btn"        data-filter="noticias"       onclick="filterCategory(this)">Notícias</button>
+        </div>
+
+        <div class="info-note">
+            ✅ <strong>151 canais</strong> com links reais em 7 categorias. O botão "Assistir" abre um <strong>player embutido</strong> dentro do próprio site (iframe ou player de vídeo, conforme o tipo de link) — nada abre fora do WebView.
+        </div>
+
+        <div class="channel-grid" id="channel-grid">
+            <div class="channel-card" data-category="abertos" data-name="globo rj">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo RJ" loading="lazy"></div>
+                <h4>Globo RJ</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-22.9068467&long=-43.1728965" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo sp">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo SP" loading="lazy"></div>
+                <h4>Globo SP</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-23.5505199&long=-46.6333094" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo mg">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo MG" loading="lazy"></div>
+                <h4>Globo MG</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-19.9323082&long=-43.9377467" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo mt">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo MT" loading="lazy"></div>
+                <h4>Globo MT</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-15.5982000&long=-56.0949000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ms">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo MS" loading="lazy"></div>
+                <h4>Globo MS</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-20.4486000&long=-54.6291000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ro">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo RO" loading="lazy"></div>
+                <h4>Globo RO</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-8.7619000&long=-63.9039000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo es">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo ES" loading="lazy"></div>
+                <h4>Globo ES</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-20.3155188&long=-40.3128362" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo rs">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo RS" loading="lazy"></div>
+                <h4>Globo RS</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-30.0330556&long=-51.2300000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo sc">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo SC" loading="lazy"></div>
+                <h4>Globo SC</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-27.5947384&long=-48.5482315" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo pa">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo PA" loading="lazy"></div>
+                <h4>Globo PA</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-25.4289541&long=-49.2732824" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo pe">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo PE" loading="lazy"></div>
+                <h4>Globo PE</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-8.0542838&long=-34.8813025" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ba">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo BA" loading="lazy"></div>
+                <h4>Globo BA</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-12.9777174&long=-38.5016335" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo go">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo GO" loading="lazy"></div>
+                <h4>Globo GO</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-16.6806509&long=-49.2532759" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo am">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo AM" loading="lazy"></div>
+                <h4>Globo AM</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-3.1190275&long=-60.0217354" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo pr">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo PR" loading="lazy"></div>
+                <h4>Globo PR</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-1.4550212&long=-48.4897746" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ac">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo AC" loading="lazy"></div>
+                <h4>Globo AC</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-9.9749170&long=-67.8075727" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo al">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo AL" loading="lazy"></div>
+                <h4>Globo AL</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-9.6658000&long=-35.7353000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ap">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo AP" loading="lazy"></div>
+                <h4>Globo AP</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=0.0349000&long=-51.0694000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo rn">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo RN" loading="lazy"></div>
+                <h4>Globo RN</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-5.7944835&long=-35.2110255" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo pb">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo PB" loading="lazy"></div>
+                <h4>Globo PB</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-7.1153215&long=-34.8640822" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo df">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo DF" loading="lazy"></div>
+                <h4>Globo DF</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-15.7975112&long=-47.8918864" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ce">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo CE" loading="lazy"></div>
+                <h4>Globo CE</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-3.7318593&long=-38.5266695" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo pi">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo PI" loading="lazy"></div>
+                <h4>Globo PI</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-5.0891704&long=-42.8016442" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo ma">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo MA" loading="lazy"></div>
+                <h4>Globo MA</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-2.5307304&long=-44.3068285" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo rr">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo RR" loading="lazy"></div>
+                <h4>Globo RR</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=2.8208000&long=-60.6720000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo se">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo SE" loading="lazy"></div>
+                <h4>Globo SE</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-10.9472000&long=-37.0731000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="globo to">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvglobo.png" alt="Globo TO" loading="lazy"></div>
+                <h4>Globo TO</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/globo/player.php?id=6120663&lat=-10.1673000&long=-48.3330000" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="sbt">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sbt.png" alt="Sbt" loading="lazy"></div>
+                <h4>Sbt</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pqpstream.online/multi/player.html?m3u8=https://d1jvs4svzaqp8n.cloudfront.net/indexMobile.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="record">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/record.png" alt="Record" loading="lazy"></div>
+                <h4>Record</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/record.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="band">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/band.png" alt="Band" loading="lazy"></div>
+                <h4>Band</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=45b7ac6f-9c71-41d6-8dd5-fabeee65f4b1" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="redetv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/redetv.png" alt="RedeTV!" loading="lazy"></div>
+                <h4>RedeTV!</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/redetv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="tv cultura">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvcultura.png" alt="Tv Cultura" loading="lazy"></div>
+                <h4>Tv Cultura</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=VFZfQ1VMVFVSQV9IRA==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="tv brasil">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tvbrasil.png" alt="Tv Brasil" loading="lazy"></div>
+                <h4>Tv Brasil</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=7e64e31d-2cf4-49b0-811d-7da2ce6954cc" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="tv aparecida">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/aparecida.png" alt="Tv Aparecida" loading="lazy"></div>
+                <h4>Tv Aparecida</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=VFZfQVBBUkVDSURBX0hE" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="sabor & arte">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/saborearte.png" alt="Sabor &amp; Arte" loading="lazy"></div>
+                <h4>Sabor &amp; Arte</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=e84000f0-93c6-4fa2-9cfd-7d63de016ca0" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="abertos" data-name="tv terceiro anjo">
+                <div class="channel-logo"><img src="https://play-lh.googleusercontent.com/O7yoHjhx0fjl-amT3sqtojqoxiRrs0acDXwHAF4DHqc44lefqWMAl39Xd9-HgeuPW9V5s-0RONJpth6a3Gz57w=w240-h480" alt="TV Terceiro Anjo" loading="lazy"></div>
+                <h4>TV Terceiro Anjo</h4>
+                <span class="channel-tag">Abertos</span>
+                <button class="btn-watch" data-url="https://streamer1.streamhost.org/salive/GMI3anjoh/playlist.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="globo news">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/globonews.png" alt="Globo News" loading="lazy"></div>
+                <h4>Globo News</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/globonews" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="sbt news">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sbtnews.png" alt="Sbt News" loading="lazy"></div>
+                <h4>Sbt News</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://dai.google.com/linear/hls/event/1XSOdtQ0SH2G8OEmEfGgjQ/master.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="record news">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/recordnews.png" alt="Record News" loading="lazy"></div>
+                <h4>Record News</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/m3u8/player.html?m3u8=https://rnw-rn-soultv.otteravision.com/rnw/rn/rnw_rn.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="band news">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/bandnews.png" alt="Band News" loading="lazy"></div>
+                <h4>Band News</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=66250a65-572a-40e8-87e1-4f68e46bae01" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="jp news">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/jpnews.webp" alt="JP News" loading="lazy"></div>
+                <h4>JP News</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/embed/jpnews.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="cnn brasil">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/cnnbrasil.png" alt="CNN Brasil" loading="lazy"></div>
+                <h4>CNN Brasil</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/m3u8/player.html?m3u8=https://origin-fast.b-cdn.net/CNN_BRASIL/index.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="agroplus">
+                <div class="channel-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/4/40/Agro+.png" alt="Agro+" loading="lazy"></div>
+                <h4>Agro+</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=fb32c161-88ed-4586-a728-622f4267b233" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="noticias" data-name="canal uol">
+                <div class="channel-logo"><img src="https://blog.publicidade.uol.com.br/wp-content/uploads/2024/10/canal-uol-lancamento-1.jpeg" alt="Canal UOL" loading="lazy"></div>
+                <h4>Canal UOL</h4>
+                <span class="channel-tag">Notícias</span>
+                <button class="btn-watch" data-url="https://video24.mais.uol.com.br/live/6146.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="cartoon network">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/cartoonnetwork.webp" alt="Cartoon Network" loading="lazy"></div>
+                <h4>Cartoon Network</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/cartoonnetwork.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="tooncast">
+                <div class="channel-logo"><img src="https://logodix.com/logo/1933602.png" alt="Tooncast" loading="lazy"></div>
+                <h4>Tooncast</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/toncast.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="cartoonito">
+                <div class="channel-logo"><img src="https://logowik.com/content/uploads/images/t_7354-cartoonito.webp" alt="Cartoonito" loading="lazy"></div>
+                <h4>Cartoonito</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=Qk9PTUVSQU5HX0hE" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="discovery kids">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoverykids.png" alt="Discovery Kids" loading="lazy"></div>
+                <h4>Discovery Kids</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/discoverykids.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="gloob">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/gloob.png" alt="Gloob" loading="lazy"></div>
+                <h4>Gloob</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/gloob" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="infantil" data-name="gloobinho">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/gloobinho.png" alt="Gloobinho" loading="lazy"></div>
+                <h4>Gloobinho</h4>
+                <span class="channel-tag">Infantil</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/gloobinho" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN" loading="lazy"></div>
+                <h4>ESPN</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN 2" loading="lazy"></div>
+                <h4>ESPN 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn 3">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN 3" loading="lazy"></div>
+                <h4>ESPN 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn 4">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN 4" loading="lazy"></div>
+                <h4>ESPN 4</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn4.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn 5">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN 5" loading="lazy"></div>
+                <h4>ESPN 5</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn5.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="espn 6">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/espn.png" alt="ESPN 6" loading="lazy"></div>
+                <h4>ESPN 6</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/espn6.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="caze tv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/cazetv.webp" alt="Caze TV" loading="lazy"></div>
+                <h4>Caze TV</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/cazetv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="caze tv 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/cazetv.webp" alt="Caze TV 2" loading="lazy"></div>
+                <h4>Caze TV 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/cazetv2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="caze tv 3">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/cazetv.webp" alt="Caze TV 3" loading="lazy"></div>
+                <h4>Caze TV 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/cazetv3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="nsports">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/nsports.png" alt="NSports" loading="lazy"></div>
+                <h4>NSports</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/m3u8/player.html?m3u8=https://origin-fast.b-cdn.net/NSPORTS/index.m3u8" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="xsports">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/xsports.png" alt="XSports" loading="lazy"></div>
+                <h4>XSports</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/xsports.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportynet">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportynet.avif" alt="SportyNet" loading="lazy"></div>
+                <h4>SportyNet</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/sportynet.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportynetplus">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportynet.avif" alt="SportyNet+" loading="lazy"></div>
+                <h4>SportyNet+</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/sportynetplus.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportynetplus 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportynet.avif" alt="SportyNet+ 2" loading="lazy"></div>
+                <h4>SportyNet+ 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/sportynetplus2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportynetplus 3">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportynet.avif" alt="SportyNet+ 3" loading="lazy"></div>
+                <h4>SportyNet+ 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/sportynetplus3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv" loading="lazy"></div>
+                <h4>Sportv</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/sportv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv Alternativo" loading="lazy"></div>
+                <h4>Sportv Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/sportv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv 2" loading="lazy"></div>
+                <h4>Sportv 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/sportv2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv 2 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv 2 Alternativo" loading="lazy"></div>
+                <h4>Sportv 2 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/sportv2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv 3">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv 3" loading="lazy"></div>
+                <h4>Sportv 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/sportv3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="sportv 3 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/sportv.png" alt="Sportv 3 Alternativo" loading="lazy"></div>
+                <h4>Sportv 3 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/sportv3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="space">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/space.png" alt="Space" loading="lazy"></div>
+                <h4>Space</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://p225dr1lvr19.38hvkgugvh9n.com/space.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere clubes">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere Clubes" loading="lazy"></div>
+                <h4>Premiere Clubes</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiereclubes.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere clubes alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere Clubes Alternativo" loading="lazy"></div>
+                <h4>Premiere Clubes Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiereclubes.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 2" loading="lazy"></div>
+                <h4>Premiere 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 2 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 2 Alternativo" loading="lazy"></div>
+                <h4>Premiere 2 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 3">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 3" loading="lazy"></div>
+                <h4>Premiere 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 3 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 3 Alternativo" loading="lazy"></div>
+                <h4>Premiere 3 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere3.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 4">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 4" loading="lazy"></div>
+                <h4>Premiere 4</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere4.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 4 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 4 Alternativo" loading="lazy"></div>
+                <h4>Premiere 4 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere4.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 5">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 5" loading="lazy"></div>
+                <h4>Premiere 5</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere5.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 5 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 5 Alternativo" loading="lazy"></div>
+                <h4>Premiere 5 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere5.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 6">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 6" loading="lazy"></div>
+                <h4>Premiere 6</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere6.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 6 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 6 Alternativo" loading="lazy"></div>
+                <h4>Premiere 6 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere6.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 7">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 7" loading="lazy"></div>
+                <h4>Premiere 7</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere7.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 7 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 7 Alternativo" loading="lazy"></div>
+                <h4>Premiere 7 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere7.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 8">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 8" loading="lazy"></div>
+                <h4>Premiere 8</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/premiere8.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="premiere 8 alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/premiere.png" alt="Premiere 8 Alternativo" loading="lazy"></div>
+                <h4>Premiere 8 Alternativo</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/premiere8.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="paramountplus">
+                <div class="channel-logo">P</div>
+                <h4>Paramount+</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/paramount/d18d7c5d-6dc4-4c4e-ba93-58e515e3ed05.php" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="paramountplus 2">
+                <div class="channel-logo">P</div>
+                <h4>Paramount+ 2</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/paramount/d18d7c5d-6dc4-4c4e-ba93-58e515e3ed05.php" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="paramountplus 3">
+                <div class="channel-logo">P</div>
+                <h4>Paramount+ 3</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/paramount/0468c0af-b784-404c-b0fc-254637622078.php" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="esportes" data-name="paramountplus 4">
+                <div class="channel-logo">P</div>
+                <h4>Paramount+ 4</h4>
+                <span class="channel-tag">Esportes</span>
+                <button class="btn-watch" data-url="https://localhost.tattoo/paramount/0468c0af-b784-404c-b0fc-254637622078.php" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="animal planet">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/animalplanet.png" alt="Animal Planet" loading="lazy"></div>
+                <h4>Animal Planet</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/animalplanet.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="discovery channel">
+                <div class="channel-logo"><img src="https://cdn.shopify.com/s/files/1/0558/6413/1764/files/Discovery_Channel_Logo_Design_History_Evolution_5_1024x1024.jpg?v=1694070082" alt="Discovery Channel" loading="lazy"></div>
+                <h4>Discovery Channel</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoverychannel.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="discovery science">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoveryscience.webp" alt="Discovery Science" loading="lazy"></div>
+                <h4>Discovery Science</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoveryscience.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="discovery theater">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoverytheater.png" alt="Discovery Theater" loading="lazy"></div>
+                <h4>Discovery Theater</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoverytheater.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="discovery turbo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoveryturbo.png" alt="Discovery Turbo" loading="lazy"></div>
+                <h4>Discovery Turbo</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoveryturbo.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="discovery world">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoveryworld.png" alt="Discovery World" loading="lazy"></div>
+                <h4>Discovery World</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoveryworld.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="futura">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/futura.png" alt="Futura" loading="lazy"></div>
+                <h4>Futura</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/embed/futura.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="history">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/history.webp" alt="History" loading="lazy"></div>
+                <h4>History</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/history.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="documentarios" data-name="history 2">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/history2.png" alt="History 2" loading="lazy"></div>
+                <h4>History 2</h4>
+                <span class="channel-tag">Documentários</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/history2.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="adult swim">
+                <div class="channel-logo"><img src="https://i0.wp.com/anmtv.com.br/wp-content/uploads/2023/08/Adult-Swim.jpg?resize=800,400&ssl=1" alt="Adult Swim" loading="lazy"></div>
+                <h4>Adult Swim</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=VFJVVFZfSEQ=" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="a&e">
+                <div class="channel-logo"><img src="https://programacao.tv/imagens/a&e.webp" alt="A&amp;E" loading="lazy"></div>
+                <h4>A&amp;E</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/aee.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="arte1">
+                <div class="channel-logo"><img src="https://static.wikia.nocookie.net/tvpediabrasil/images/7/70/Arte1.jpg/revision/latest/scale-to-width-down/268?cb=20170731214245&path-prefix=pt-br" alt="Arte1" loading="lazy"></div>
+                <h4>Arte1</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/multtv/player.php?id=cebe3430-3bed-4506-a8d3-5a5b1fc3558a" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="bis">
+                <div class="channel-logo"><img src="https://boomerangmusic.com.br/wp-content/uploads/2021/06/mini-Canal-BIS-2.jpg" alt="Bis" loading="lazy"></div>
+                <h4>Bis</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/bis" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="canal off">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/canaloff.png" alt="Canal OFF" loading="lazy"></div>
+                <h4>Canal OFF</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/canaloff" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="curta">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/curta.png" alt="Curta!" loading="lazy"></div>
+                <h4>Curta!</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/curta.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="discovery home e health">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/discoveryheh.webp" alt="Discovery Home e Health" loading="lazy"></div>
+                <h4>Discovery Home e Health</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/discoveryhh.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="e">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/e.png" alt="E!" loading="lazy"></div>
+                <h4>E!</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/entertainment.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="fashion tv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/fashiontv.png" alt="Fashion TV" loading="lazy"></div>
+                <h4>Fashion TV</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/fashiontv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="fish tv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/fishtv.png" alt="Fish TV" loading="lazy"></div>
+                <h4>Fish TV</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/fishtv.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="food network">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/foodnetwork.png" alt="Food Network" loading="lazy"></div>
+                <h4>Food Network</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/foodnetwork.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="globoplay novelas">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/globoplaynovelas.png" alt="Globoplay Novelas" loading="lazy"></div>
+                <h4>Globoplay Novelas</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/globoplaynovelas" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="globoplay novelas alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/globoplaynovelas.png" alt="Globoplay Novelas Alternativo" loading="lazy"></div>
+                <h4>Globoplay Novelas Alternativo</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/globoplaynovelas.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="gnt">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/gnt.png" alt="Gnt" loading="lazy"></div>
+                <h4>Gnt</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/gnt" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="hgtv">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/hgtv.png" alt="HGTV" loading="lazy"></div>
+                <h4>HGTV</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/b-cdn/player.php?id=SEdUVI9CUI9OWA==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="modo viagem">
+                <div class="channel-logo"><img src="https://static.wikia.nocookie.net/logopedia/images/1/11/Modo_Viagem_2021.svg/revision/latest/scale-to-width-down/250?cb=20220425150715" alt="Modo Viagem" loading="lazy"></div>
+                <h4>Modo Viagem</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/modoviagem" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="mult show">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/multishow.png" alt="Mult Show" loading="lazy"></div>
+                <h4>Mult Show</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/multishow" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="multi show alternativo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/multishow.png" alt="Multi Show Alternativo" loading="lazy"></div>
+                <h4>Multi Show Alternativo</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/multishow.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="tlc">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/tlc.png" alt="TLC" loading="lazy"></div>
+                <h4>TLC</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://bolodechocolate.fit/play/tlc.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="entretenimento" data-name="woohoo">
+                <div class="channel-logo"><img src="https://cdn.reidoscanais.st/imagens/woohoo.png" alt="WooHoo" loading="lazy"></div>
+                <h4>WooHoo</h4>
+                <span class="channel-tag">Entretenimento</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/b-cdn/player.php?id=V09PSE9PX1RL" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo">
+                <div class="channel-logo">H</div>
+                <h4>HBO</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJP" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo 2">
+                <div class="channel-logo">H</div>
+                <h4>HBO 2</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPMg==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo family">
+                <div class="channel-logo">H</div>
+                <h4>HBO Family</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPX0ZBTUlMWQ==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo pop">
+                <div class="channel-logo">H</div>
+                <h4>HBO Pop</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPX1BPUF9IRA" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo signature">
+                <div class="channel-logo">H</div>
+                <h4>HBO Signature</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPX1NJR05BVFVSRQ==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hbo xtreme">
+                <div class="channel-logo">H</div>
+                <h4>HBO Xtreme</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPX0VYVFJFTUVfSEQ=" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="hboplus">
+                <div class="channel-logo">H</div>
+                <h4>HBO+</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=SEJPX1BMVVM" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="amc">
+                <div class="channel-logo">A</div>
+                <h4>AMC</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/amc.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="axn">
+                <div class="channel-logo">A</div>
+                <h4>AXN</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/axn.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="canal brasil">
+                <div class="channel-logo">C</div>
+                <h4>Canal Brasil</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/canalbrasil" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="cinemax">
+                <div class="channel-logo">C</div>
+                <h4>Cinemax</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=Q0lORU1BWA==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="discovery id">
+                <div class="channel-logo">D</div>
+                <h4>Discovery ID</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/discoveryid.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="lifetime">
+                <div class="channel-logo">L</div>
+                <h4>Lifetime</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/b-cdn/player.php?id=TElGRVRJTUUtSFX1RL" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="megapix">
+                <div class="channel-logo">M</div>
+                <h4>Megapix</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/megapix" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="sony channel">
+                <div class="channel-logo">S</div>
+                <h4>Sony Channel</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=U09OWV9DSEFOTkVM==" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="sony movies">
+                <div class="channel-logo">S</div>
+                <h4>Sony Movies</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=U09OWV9NT1ZJRVM=" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="space filmes & séries">
+                <div class="channel-logo">S</div>
+                <h4>Space (Filmes &amp; Séries)</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/space.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="studio universal">
+                <div class="channel-logo">S</div>
+                <h4>Studio Universal</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/studiouniversal" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine action">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Action</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecineaction.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine cult">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Cult</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecinecult.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine fun">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Fun</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecinefun.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine pipoca">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Pipoca</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecinepipoca.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine premium">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Premium</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecinepremium.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="telecine touch">
+                <div class="channel-logo">T</div>
+                <h4>Telecine Touch</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/telecinetouch.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="tnt">
+                <div class="channel-logo">T</div>
+                <h4>TNT</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/tnt.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="tnt novelas">
+                <div class="channel-logo">T</div>
+                <h4>TNT Novelas</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/tntnovelas.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="tnt séries">
+                <div class="channel-logo">T</div>
+                <h4>TNT Séries</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://bolodecenoura.fit/tntseries.html" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="universal tv">
+                <div class="channel-logo">U</div>
+                <h4>Universal TV</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/universaltv" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="usa">
+                <div class="channel-logo">U</div>
+                <h4>USA</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://rdcanais.net/usa" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+            <div class="channel-card" data-category="filmes-series" data-name="warner tv">
+                <div class="channel-logo">W</div>
+                <h4>Warner TV</h4>
+                <span class="channel-tag">Filmes & Séries</span>
+                <button class="btn-watch" data-url="https://pescaplay.store/sattv/player.php?id=V0FSTkVSVFY=" onclick="playChannel(this)">▶ Assistir</button>
+            </div>
+        </div>
+
+        <p class="no-results" id="no-results">Nenhum canal encontrado.</p>
+    </div>
+
+    <div class="player-modal" id="player-modal">
+        <div class="player-box">
+            <div class="player-header">
+                <h4 id="player-title">Canal</h4>
+                <button class="player-close" onclick="closePlayer()">✕</button>
+            </div>
+            <div class="player-frame-wrap" id="player-frame-wrap">
+                <p class="player-loading">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        © 2020-2026 RC TEAM • Desenvolvido por REALLY CRAZY (RC) • Todos os direitos reservados.
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js"></script>
+    <script>
+    /* ============================================================
+       RCTV — Player + delegação para o app Android
+       ============================================================ */
+
+    var currentHls = null;
+    var __rctvFilter = 'todos';
+
+    /* ---------- Filtro de categoria ---------- */
+    function filterCategory(btn) {
+        var btns = document.querySelectorAll('.filter-btn');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.remove('active');
+        }
+        btn.classList.add('active');
+        __rctvFilter = btn.getAttribute('data-filter') || 'todos';
+        applyFilter();
+    }
+
+    /* ---------- Busca + aplicação do filtro ---------- */
+    function applyFilter() {
+        var input = document.getElementById('search-input');
+        var term  = (input && input.value ? input.value : '').trim().toLowerCase();
+        var cat   = __rctvFilter || 'todos';
+
+        var cards = document.querySelectorAll('.channel-card');
+        var count = 0;
+        for (var i = 0; i < cards.length; i++) {
+            var c  = cards[i];
+            var cc = c.getAttribute('data-category') || '';
+            var nn = c.getAttribute('data-name') || '';
+            var okCat    = (cat === 'todos') || (cc === cat);
+            var okSearch = (nn.indexOf(term) !== -1);
+            var show     = okCat && okSearch;
+            c.style.display = show ? '' : 'none';
+            if (show) count++;
+        }
+        var nr = document.getElementById('no-results');
+        if (nr) nr.style.display = (count === 0) ? 'block' : 'none';
+    }
+
+    /* ---------- Helpers ---------- */
+    function isDirectStream(url) {
+        var path = url.toLowerCase().split('?')[0].split('#')[0];
+        return path.indexOf('.m3u8') !== -1 || path.indexOf('.mpd') !== -1;
+    }
+
+    /* ⭐ Domínios que só funcionam no app (que usa loadDataWithBaseURL) */
+    function precisaDelegarProApp(url) {
+        return url.indexOf('bolodechocolate.fit') !== -1
+            || url.indexOf('bolodecenoura.fit')   !== -1
+            || url.indexOf('38hvkgugvh9n.com')    !== -1;
+    }
+
+    function appDisponivel() {
+        return (typeof window.AndroidPlayer !== 'undefined')
+            && (typeof window.AndroidPlayer.openPlayer === 'function');
+    }
+
+    function showPlayerError(msg) {
+        var wrap = document.getElementById('player-frame-wrap');
+        wrap.innerHTML =
+            '<div style="position:absolute;inset:0;display:flex;flex-direction:column;' +
+            'align-items:center;justify-content:center;text-align:center;padding:24px;' +
+            'font-family:sans-serif;color:#fff;">' +
+                '<p style="color:#FF0000;font-weight:700;font-size:18px;margin-bottom:10px;">⚠️ Canal indisponível</p>' +
+                '<p style="color:#B0B0B0;font-size:14px;">' +
+                    (msg || 'O sinal caiu ou você está sem internet.') +
+                '</p>' +
+            '</div>';
+    }
+
+    /* ---------- HLS ---------- */
+    function playHls(url) {
+        var wrap = document.getElementById('player-frame-wrap');
+        wrap.innerHTML = '<video id="player-video" controls autoplay playsinline ' +
+            'style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;"></video>';
+        var video = document.getElementById('player-video');
+
+        if (!window.Hls || !Hls.isSupported()) {
+            if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                try { video.play(); } catch (e) {}
+                video.addEventListener('error', function () { showPlayerError(); });
+            } else {
+                showPlayerError('Este dispositivo não suporta o formato do stream.');
+            }
+            return;
+        }
+
+        try {
+            if (currentHls) { try { currentHls.destroy(); } catch (e) {} }
+            currentHls = new Hls({
+                enableWorker: true,
+                backBufferLength: 30,
+                manifestLoadingTimeOut: 20000,
+                manifestLoadingMaxRetry: 4,
+                levelLoadingTimeOut: 20000,
+                levelLoadingMaxRetry: 4,
+                fragLoadingTimeOut: 20000,
+                fragLoadingMaxRetry: 6
+            });
+            currentHls.loadSource(url);
+            currentHls.attachMedia(video);
+            currentHls.on(Hls.Events.MANIFEST_PARSED, function () {
+                try { video.play(); } catch (e) {}
+            });
+            currentHls.on(Hls.Events.ERROR, function (evt, data) {
+                if (!data || !data.fatal) return;
+                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) currentHls.startLoad();
+                else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) currentHls.recoverMediaError();
+                else showPlayerError();
+            });
+        } catch (err) {
+            showPlayerError('Erro: ' + err.message);
+        }
+    }
+
+    /* ---------- Iframe (para canais comuns) ---------- */
+    function playIframe(url) {
+        var wrap = document.getElementById('player-frame-wrap');
+        wrap.innerHTML = '';
+        var iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.setAttribute('allow',
+            'autoplay; fullscreen; encrypted-media; picture-in-picture; clipboard-write');
+        iframe.setAttribute('allowfullscreen', 'true');
+        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+        iframe.style.cssText =
+            'position:absolute;top:0;left:0;width:100%;height:100%;border:0;background:#000;';
+        wrap.appendChild(iframe);
+    }
+
+    /* ============================================================
+       playChannel — delega pro app quando necessário
+       ============================================================ */
+    function playChannel(btn) {
+        try {
+            var url  = btn.getAttribute('data-url');
+            var card = btn;
+            while (card && (!card.className || String(card.className).indexOf('channel-card') === -1)) {
+                card = card.parentNode;
+            }
+            var nome = 'Canal';
+            if (card) {
+                var h4 = card.querySelector('h4');
+                if (h4) nome = h4.textContent;
+            }
+
+            /* ⭐ Se precisa do app E o app está disponível → delega */
+            if (precisaDelegarProApp(url)) {
+                if (appDisponivel()) {
+                    window.AndroidPlayer.openPlayer(url);
+                    return;
+                }
+                // App não disponível (ex: testando no navegador do PC)
+                // → mostra erro amigável em vez de tela cinza
+                document.getElementById('player-title').textContent = nome;
+                var wrapFallback = document.getElementById('player-frame-wrap');
+                wrapFallback.innerHTML = '<p class="player-loading">Carregando...</p>';
+                document.getElementById('player-modal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                showPlayerError(
+                    'Este canal precisa ser aberto no aplicativo RCTV. ' +
+                    'Está faltando a ponte AndroidPlayer.openPlayer().'
+                );
+                return;
+            }
+
+            /* Canais comuns → player embutido normal */
+            document.getElementById('player-title').textContent = nome;
+            var wrap = document.getElementById('player-frame-wrap');
+            wrap.innerHTML = '<p class="player-loading">Carregando...</p>';
+            document.getElementById('player-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            if (isDirectStream(url)) playHls(url);
+            else playIframe(url);
+
+        } catch (e) {
+            alert('Erro ao abrir canal: ' + e.message);
+        }
+    }
+
+    /* ---------- closePlayer ---------- */
+    function closePlayer() {
+        var modal = document.getElementById('player-modal');
+        var wrap  = document.getElementById('player-frame-wrap');
+        if (modal) modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (currentHls) { try { currentHls.destroy(); } catch (e) {} currentHls = null; }
+        if (wrap) wrap.innerHTML = '';
+    }
+
+    /* ---------- Fechar clicando fora + ESC ---------- */
+    document.getElementById('player-modal').addEventListener('click', function (e) {
+        if (e.target === this) closePlayer();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || e.keyCode === 27) closePlayer();
+    });
+
+    console.log('[RCTV] Pronto. Canais:', document.querySelectorAll('.channel-card').length,
+                '| AndroidPlayer disponível:', appDisponivel());
+    </script>
+
+</body>
+</html>
