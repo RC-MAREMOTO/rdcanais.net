@@ -138,6 +138,12 @@
     <button class="golive atlive" id="golive" aria-label="Ir para o ao vivo">AO VIVO</button>
     <span class="spacer"></span>
     <button id="cast" aria-label="Transmitir para a TV" style="display:none"></button>
+    <select id="source" aria-label="Fonte">
+      <option value="0">AXN HD</option>
+      <option value="1">AXN SD</option>
+      <option value="2">AXN RD</option>
+      <option value="3">RB RD</option>
+    </select>
     <select id="speed" aria-label="Velocidade">
       <option value="0.5">0.5x</option>
       <option value="0.75">0.75x</option>
@@ -168,7 +174,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
 <script>
 (function(){
-  const SRC = "http://170.83.49.66:8083/AXNHD/index.m3u8";
+  // Fontes do canal: se a primeira falhar, o player troca sozinho para a próxima.
+  const SOURCES = [
+    "http://170.83.49.66:8083/AXNHD/index.m3u8",
+    "http://170.83.16.50/AXN/index.m3u8", "http://45.177.114.115/TV_APARECIDA_HD/index.m3u8", "http://45.162.64.114/TV_APARECIDA/index.m3u8"
+  ];
+  let srcIndex = 0, failovers = 0;
+  const curSrc = () => SOURCES[srcIndex];
 
   // ===== EPG (guia de programação) =====
   // Cole aqui o link do guia no formato XMLTV (.xml ou .xml.gz) ou JSON.
@@ -202,6 +214,17 @@
     msgText.textContent=text; setState("error");
   }
 
+  const srcSel=document.getElementById("source");
+  function nextSource(){
+    if(failovers>=SOURCES.length-1) return false;
+    failovers++;
+    srcIndex=(srcIndex+1)%SOURCES.length;
+    srcSel.value=String(srcIndex);
+    load();
+    return true;
+  }
+  srcSel.onchange=()=>{ srcIndex=+srcSel.value; failovers=0; load(); };
+
   function load(){
     retries=0; setState("loading");
     if(hls){hls.destroy();hls=null}
@@ -215,7 +238,7 @@
         levelLoadingMaxRetry:4,
         fragLoadingMaxRetry:6
       });
-      hls.loadSource(SRC);
+      hls.loadSource(curSrc());
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED,(e,d)=>{
@@ -235,6 +258,8 @@
           retries++; setTimeout(()=>hls&&hls.startLoad(),1500*retries);
         }else if(data.type===Hls.ErrorTypes.MEDIA_ERROR && retries<3){
           retries++; hls.recoverMediaError();
+        }else if(nextSource()){
+          return;
         }else{
           showError(data.type===Hls.ErrorTypes.NETWORK_ERROR
             ? "Sem conexão com o canal. Verifique se o servidor está no ar e permite acesso (CORS)."
@@ -242,9 +267,9 @@
         }
       });
     }else if(video.canPlayType("application/vnd.apple.mpegurl")){
-      video.src=SRC;
+      video.src=curSrc();
       video.addEventListener("loadedmetadata",tryAutoplay,{once:true});
-      video.addEventListener("error",()=>showError("Não foi possível carregar o canal."),{once:true});
+      video.addEventListener("error",()=>{ if(!nextSource()) showError("Não foi possível carregar o canal."); },{once:true});
     }else{
       showError("Este navegador não suporta HLS.");
     }
@@ -262,7 +287,7 @@
   unmuteBtn.onclick=()=>{video.muted=false;if(video.volume===0)video.volume=1;unmuteBtn.classList.remove("show")};
 
   // Estado do vídeo
-  video.addEventListener("playing",()=>{setState("");player.classList.add("playing");playBtn.innerHTML=ic.pause;retries=0});
+  video.addEventListener("playing",()=>{failovers=0;setState("");player.classList.add("playing");playBtn.innerHTML=ic.pause;retries=0});
   video.addEventListener("pause",()=>{player.classList.remove("playing");playBtn.innerHTML=ic.play});
   video.addEventListener("waiting",()=>setState("loading"));
   video.addEventListener("canplay",()=>{ if(!player.classList.contains("error")) setState("") });
@@ -370,7 +395,7 @@
           castName.textContent="Transmitindo para "+(dev||"a TV");
           player.classList.add("casting"); castBtn.classList.add("on");
           video.pause();
-          const media=new chrome.cast.media.MediaInfo(SRC,"application/x-mpegURL");
+          const media=new chrome.cast.media.MediaInfo(curSrc(),"application/x-mpegURL");
           media.streamType=chrome.cast.media.StreamType.LIVE;
           media.metadata=new chrome.cast.media.GenericMediaMetadata();
           media.metadata.title="AXN HD";
@@ -508,5 +533,6 @@
   load();
 })();
 </script>
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 </body>
 </html>
